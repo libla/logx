@@ -238,7 +238,7 @@ namespace testing
 #endif  // GTEST_OS_SYMBIAN
 
 		// We'll hold the text streamed to this object here.
-		const internal::scoped_ptr<std::stringstream> ss_;
+		const internal::scoped_ptr<::std::stringstream> ss_;
 
 		// We declare (but don't implement) this to prevent the compiler
 		// from implementing the assignment operator.

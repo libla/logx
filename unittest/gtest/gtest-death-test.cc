@@ -1352,9 +1352,9 @@ namespace testing
 		// vector with the fields.  GTEST_HAS_DEATH_TEST implies that we have
 		// ::std::string, so we can use it here.
 		static void SplitString(const ::std::string &str, char delimiter,
-		                        ::std::vector<std::string> *dest)
+		                        ::std::vector<::std::string> *dest)
 		{
-			::std::vector<std::string> parsed;
+			::std::vector<::std::string> parsed;
 			::std::string::size_type pos = 0;
 			while (::testing::internal::AlwaysTrue())
 			{
@@ -1457,7 +1457,7 @@ namespace testing
 			// can use it here.
 			int line = -1;
 			int index = -1;
-			::std::vector<std::string> fields;
+			::std::vector<::std::string> fields;
 			SplitString(GTEST_FLAG(internal_run_death_test).c_str(), '|', &fields);
 			int write_fd = -1;
 

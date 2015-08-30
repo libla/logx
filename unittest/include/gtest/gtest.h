@@ -319,7 +319,7 @@ namespace testing
 		// construct is not satisfied with the predicate's outcome.
 		// Referenced via a pointer to avoid taking too much stack frame space
 		// with test assertions.
-		internal::scoped_ptr<std::string> message_;
+		internal::scoped_ptr<::std::string> message_;
 
 		GTEST_DISALLOW_ASSIGN_(AssertionResult);
 	};

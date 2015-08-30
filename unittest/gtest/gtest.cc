@@ -1037,7 +1037,7 @@ namespace testing
 		: success_(other.success_),
 		  message_(other.message_.get() != NULL ?
 		           new ::std::string(*other.message_) :
-		           static_cast<std::string *>(NULL))
+		           static_cast<::std::string *>(NULL))
 	{
 	}
 

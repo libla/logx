@@ -921,7 +921,7 @@ namespace testing
 		void PrintTupleTo(const T &t, ::std::ostream *os)
 		{
 			*os << "(";
-			TuplePrefixPrinter<std::tr1::tuple_size<T>::value>::
+			TuplePrefixPrinter<::std::tr1::tuple_size<T>::value>::
 			PrintPrefixTo(t, os);
 			*os << ")";
 		}
@@ -933,7 +933,7 @@ namespace testing
 		Strings UniversalTersePrintTupleFieldsToStrings(const Tuple &value)
 		{
 			Strings result;
-			TuplePrefixPrinter<std::tr1::tuple_size<Tuple>::value>::
+			TuplePrefixPrinter<::std::tr1::tuple_size<Tuple>::value>::
 			TersePrintPrefixToStrings(value, &result);
 			return result;
 		}
