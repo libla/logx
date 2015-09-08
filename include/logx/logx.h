@@ -4,6 +4,7 @@
 
 #include <time.h>
 #include <new>
+#include <mutex>
 
 namespace logx
 {
@@ -80,7 +81,7 @@ namespace logx
 
 		public:
 			template <typename... Args>
-			void operator () (Args... args)
+			void operator () (Args&&... args)
 			{
 				if (_log._level <= _level && _log._sinks != nullptr)
 				{
@@ -99,7 +100,7 @@ namespace logx
 			}
 
 			template <typename... Args>
-			void operator () (bool condition, Args... args)
+			void operator () (bool condition, Args&&... args)
 			{
 				if (condition)
 					return *this(args...);
@@ -127,14 +128,17 @@ namespace logx
 	public:
 		logger();
 		logger(alloctor &m);
+		logger(logger &&lhs);
 		~logger();
+		logger(const logger &) = delete;
+		logger & operator = (const logger &) = delete;
 
 	private:
 		template <typename T>
 		class params;
 
 		template <typename T, typename... Args>
-		void build(stream *os, T t, Args... args)
+		void build(stream *os, T t, Args&&... args)
 		{
 			build(params<T>::build(os, t), args...);
 		}
@@ -159,7 +163,7 @@ namespace logx
 		logger & suffix(const char *fmt);
 
 		template <typename T, typename... Args>
-		T * create(Args... args)
+		T * create(Args&&... args)
 		{
 			T *t = (T *)_alloc.take(sizeof(T));
 			new (t)T(args...);
@@ -182,7 +186,9 @@ namespace logx
 		size_t _suflen;
 
 		sink *_sinks;
+		std::mutex _sinks_mtx;
 		stream *_stream;
+		std::mutex _stream_mtx;
 	};
 
 	template <>

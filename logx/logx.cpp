@@ -103,11 +103,13 @@ namespace logx
 
 	void sink::release()
 	{
-		// todo lock
 		logger *log = this->log;
 		void *ptr = this->ptr;
 		size_t len = this->len;
-		this->~sink();
+		{
+			std::lock_guard<std::mutex> lock(log->_sinks_mtx);
+			this->~sink();
+		}
 		log->_alloc.drop(ptr, len);
 	}
 
@@ -212,15 +214,57 @@ namespace logx
 		_stream = nullptr;
 	}
 
+	logger::logger(logger &&lhs)
+		: _alloc(lhs._alloc)
+		, debug(*this, "DEBUG  ", LEVEL_DEBUG)
+		, trace(*this, "TRACE  ", LEVEL_TRACE)
+		, record(*this, "RECORD ", LEVEL_RECORD)
+		, warning(*this, "WARNING", LEVEL_WARNING)
+		, error(*this, "ERROR  ", LEVEL_ERROR)
+		, fatal(*this, "FATAL  ", LEVEL_FATAL)
+	{
+		_level = lhs._level;
+		_prefmt = lhs._prefmt;
+		_prelen = lhs._prelen;
+		_suffmt = lhs._suffmt;
+		_suflen = lhs._suflen;
+		_sinks = lhs._sinks;
+		_stream = lhs._stream;
+
+		lhs._prefmt = _default_prefmt;
+		lhs._prelen = 0;
+		lhs._suffmt = _default_suffmt;
+		lhs._suflen = 0;
+		lhs._sinks = nullptr;
+		lhs._stream = nullptr;
+	}
+
 	logger::~logger()
 	{
-		// todo lock
-		while (_sinks)
+		if (_prelen != 0)
 		{
-			void *ptr = _sinks->ptr;
-			size_t len = _sinks->len;
-			_sinks->~sink();
-			_alloc.drop(ptr, len);
+			_alloc.drop(_prefmt, _prelen);
+		}
+		if (_suflen != 0)
+		{
+			_alloc.drop(_suffmt, _suflen);
+		}
+		while (_stream)
+		{
+			stream *old = _stream;
+			_stream = _stream->next;
+			old->~stream();
+			_alloc.drop(old, sizeof(stream));
+		}
+		{
+			std::lock_guard<std::mutex> lock(_sinks_mtx);
+			while (_sinks)
+			{
+				void *ptr = _sinks->ptr;
+				size_t len = _sinks->len;
+				_sinks->~sink();
+				_alloc.drop(ptr, len);
+			}
 		}
 	}
 
@@ -316,7 +360,7 @@ namespace logx
 		stream *init;
 		if (_stream != nullptr)
 		{
-			// todo lock
+			std::lock_guard<std::mutex> lock(_stream_mtx);
 			init = _stream;
 			_stream = _stream->next;
 			init->~stream();
@@ -363,7 +407,7 @@ namespace logx
 			s = s->next;
 		}
 		{
-			// todo lock
+			std::lock_guard<std::mutex> lock(_stream_mtx);
 			stream *is = init;
 			while (is)
 			{
@@ -521,7 +565,7 @@ namespace logx
 	{
 		if (s.prev == nullptr && s.next == nullptr)
 		{
-			// todo lock
+			std::lock_guard<std::mutex> lock(_sinks_mtx);
 			if (_sinks == nullptr)
 			{
 				_sinks = &s;
